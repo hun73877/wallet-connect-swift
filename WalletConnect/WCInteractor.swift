@@ -41,7 +41,7 @@ open class WCInteractor {
     // outgoing promise resolvers
     private var connectResolver: Resolver<Bool>?
 
-    private var isConnected = false
+    var isConnected = false
     private var socket: WebSocket
     private var handshakeId: Int64 = -1
     private weak var pingTimer: Timer?
