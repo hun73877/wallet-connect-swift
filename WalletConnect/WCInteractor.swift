@@ -51,11 +51,7 @@ open class WCInteractor {
     private var peerId: String?
     private var peerMeta: WCPeerMeta?
 
-    public init(
-        session: WCSession,
-        meta: WCPeerMeta,
-        uuid: UUID, sessionRequestTimeout: TimeInterval = 20
-    ) {
+    public init(session: WCSession, meta: WCPeerMeta, uuid: UUID, sessionRequestTimeout: TimeInterval = 20) {
         self.session = session
         self.clientId = uuid.description.lowercased()
         self.clientMeta = meta
