@@ -65,12 +65,12 @@ open class WCInteractor {
         var request = URLRequest(url: session.bridge)
         request.timeoutInterval = sessionRequestTimeout
         self.socket = WebSocket(request: request)
-        self.socket.delegate = self
 
-        self.eth = WCEthereumInteractor()
-        self.bnb = WCBinanceInteractor()
-        self.trust = WCTrustInteractor()
+        eth = WCEthereumInteractor()
+        bnb = WCBinanceInteractor()
+        trust = WCTrustInteractor()
 
+        socket.delegate = self
     }
 
     deinit {
