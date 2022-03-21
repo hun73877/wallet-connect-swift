@@ -42,7 +42,7 @@ open class WCInteractor {
     private var connectResolver: Resolver<Bool>?
 
     private var isConnected = false
-    private lazy var socket: WebSocket
+    private var socket: WebSocket
     private var handshakeId: Int64 = -1
     private weak var pingTimer: Timer?
     private weak var sessionTimer: Timer?
