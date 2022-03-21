@@ -20,44 +20,6 @@ public enum WCInteractorState {
     case disconnected
 }
 
-extension WCInteractor: WebSocketDelegate {
-
-    // socket.onData = { data in WCLog("<== websocketDidReceiveData: \(data.toHexString())") }
-
-    func didReceive(event: WebSocketEvent, client: WebSocket) {
-        switch event {
-        case .connected(let headers):
-            self.onConnect()
-            print("websocket is connected: \(headers)")
-        case .disconnected(let reason, let code):
-            print("websocket is disconnected: \(reason) with code: \(code)")
-        case .text(let text):
-            onReceiveMessage(text: text)
-            print("received text: \(text)")
-        case .binary(let data):
-            print("Received data: \(data.count)")
-            WCLog("<== websocketDidReceiveData: \(data.toHexString())")
-        case .ping(_):
-            WCLog("==> ping")
-            break
-        case .pong(_):
-            WCLog("<== pong")
-            break
-        case .viabilityChanged(_):
-            print("viabilityChanged")
-            break
-        case .reconnectSuggested(_):
-            print("reconnectSuggested")
-            break
-        case .cancelled:
-            print("websocket is canclled")
-        case .error(let error):
-            self.onDisconnect(error: error)
-            print("websocket is error = \(error!)")
-        }
-    }
-}
-
 open class WCInteractor {
     public let session: WCSession
 
@@ -79,6 +41,7 @@ open class WCInteractor {
     // outgoing promise resolvers
     private var connectResolver: Resolver<Bool>?
 
+    private var isConnected = false
     private let socket: WebSocket
     private var handshakeId: Int64 = -1
     private weak var pingTimer: Timer?
@@ -116,7 +79,7 @@ open class WCInteractor {
     }
 
     open func connect() -> Promise<Bool> {
-        if socket.isConnected {
+        if isConnected {
             return Promise.value(true)
         }
         socket.connect()
@@ -128,7 +91,7 @@ open class WCInteractor {
 
     open func pause() {
         state = .paused
-        socket.disconnect(forceTimeout: nil, closeCode: CloseCode.goingAway.rawValue)
+        socket.disconnect(closeCode: CloseCode.goingAway.rawValue)
     }
 
     open func resume() {
@@ -344,3 +307,45 @@ extension WCInteractor {
         }
     }
 }
+
+extension WCInteractor: WebSocketDelegate {
+
+    public func didReceive(event: WebSocketEvent, client: WebSocket) {
+
+        switch event {
+        case .connected(let headers):
+            isConnected = true
+            self.onConnect()
+            print("websocket is connected: \(headers)")
+        case .disconnected(let reason, let code):
+            isConnected = false
+            print("websocket is disconnected: \(reason) with code: \(code)")
+        case .text(let text):
+            onReceiveMessage(text: text)
+            print("received text: \(text)")
+        case .binary(let data):
+            print("Received data: \(data.count)")
+            WCLog("<== websocketDidReceiveData: \(data.toHexString())")
+        case .ping(_):
+            WCLog("==> ping")
+            break
+        case .pong(_):
+            WCLog("<== pong")
+            break
+        case .viabilityChanged(_):
+            print("viabilityChanged")
+            break
+        case .reconnectSuggested(_):
+            print("reconnectSuggested")
+            break
+        case .cancelled:
+            isConnected = false
+            print("websocket is canclled")
+        case .error(let error):
+            isConnected = false
+            self.onDisconnect(error: error)
+            print("websocket is error = \(error!)")
+        }
+    }
+}
+
