@@ -42,7 +42,7 @@ open class WCInteractor {
     private var connectResolver: Resolver<Bool>?
 
     private var isConnected = false
-    private let socket: WebSocket
+    private lazy var socket: WebSocket
     private var handshakeId: Int64 = -1
     private weak var pingTimer: Timer?
     private weak var sessionTimer: Timer?
@@ -52,7 +52,6 @@ open class WCInteractor {
     private var peerMeta: WCPeerMeta?
 
     public init(
-        delegate: WebSocketDelegate,
         session: WCSession,
         meta: WCPeerMeta,
         uuid: UUID, sessionRequestTimeout: TimeInterval = 20
@@ -66,7 +65,7 @@ open class WCInteractor {
         var request = URLRequest(url: session.bridge)
         request.timeoutInterval = sessionRequestTimeout
         self.socket = WebSocket(request: request)
-        self.socket.delegate = delegate
+        self.socket.delegate = self
 
         self.eth = WCEthereumInteractor()
         self.bnb = WCBinanceInteractor()
