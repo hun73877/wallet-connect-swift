@@ -51,7 +51,12 @@ open class WCInteractor {
     private var peerId: String?
     private var peerMeta: WCPeerMeta?
 
-    public init(session: WCSession, meta: WCPeerMeta, uuid: UUID, sessionRequestTimeout: TimeInterval = 20) {
+    public init(
+        delegate: WebSocketDelegate,
+        session: WCSession,
+        meta: WCPeerMeta,
+        uuid: UUID, sessionRequestTimeout: TimeInterval = 20
+    ) {
         self.session = session
         self.clientId = uuid.description.lowercased()
         self.clientMeta = meta
@@ -61,17 +66,12 @@ open class WCInteractor {
         var request = URLRequest(url: session.bridge)
         request.timeoutInterval = sessionRequestTimeout
         self.socket = WebSocket(request: request)
-        self.socket.delegate = self
+        self.socket.delegate = delegate
 
         self.eth = WCEthereumInteractor()
         self.bnb = WCBinanceInteractor()
         self.trust = WCTrustInteractor()
 
-//        socket.onConnect = { [weak self] in self?.onConnect() }
-//        socket.onDisconnect = { [weak self] error in self?.onDisconnect(error: error) }
-//        socket.onText = { [weak self] text in self?.onReceiveMessage(text: text) }
-//        socket.onPong = { _ in WCLog("<== pong") }
-//        socket.onData = { data in WCLog("<== websocketDidReceiveData: \(data.toHexString())") }
     }
 
     deinit {
