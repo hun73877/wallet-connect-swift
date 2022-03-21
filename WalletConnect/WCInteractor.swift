@@ -20,6 +20,44 @@ public enum WCInteractorState {
     case disconnected
 }
 
+extension WCInteractor: WebSocketDelegate {
+
+    // socket.onData = { data in WCLog("<== websocketDidReceiveData: \(data.toHexString())") }
+
+    func didReceive(event: WebSocketEvent, client: WebSocket) {
+        switch event {
+        case .connected(let headers):
+            self.onConnect()
+            print("websocket is connected: \(headers)")
+        case .disconnected(let reason, let code):
+            print("websocket is disconnected: \(reason) with code: \(code)")
+        case .text(let text):
+            onReceiveMessage(text: text)
+            print("received text: \(text)")
+        case .binary(let data):
+            print("Received data: \(data.count)")
+            WCLog("<== websocketDidReceiveData: \(data.toHexString())")
+        case .ping(_):
+            WCLog("==> ping")
+            break
+        case .pong(_):
+            WCLog("<== pong")
+            break
+        case .viabilityChanged(_):
+            print("viabilityChanged")
+            break
+        case .reconnectSuggested(_):
+            print("reconnectSuggested")
+            break
+        case .cancelled:
+            print("websocket is canclled")
+        case .error(let error):
+            self.onDisconnect(error: error)
+            print("websocket is error = \(error!)")
+        }
+    }
+}
+
 open class WCInteractor {
     public let session: WCSession
 
@@ -60,16 +98,17 @@ open class WCInteractor {
         var request = URLRequest(url: session.bridge)
         request.timeoutInterval = sessionRequestTimeout
         self.socket = WebSocket(request: request)
+        self.socket.delegate = self
 
         self.eth = WCEthereumInteractor()
         self.bnb = WCBinanceInteractor()
         self.trust = WCTrustInteractor()
 
-        socket.onConnect = { [weak self] in self?.onConnect() }
-        socket.onDisconnect = { [weak self] error in self?.onDisconnect(error: error) }
-        socket.onText = { [weak self] text in self?.onReceiveMessage(text: text) }
-        socket.onPong = { _ in WCLog("<== pong") }
-        socket.onData = { data in WCLog("<== websocketDidReceiveData: \(data.toHexString())") }
+//        socket.onConnect = { [weak self] in self?.onConnect() }
+//        socket.onDisconnect = { [weak self] error in self?.onDisconnect(error: error) }
+//        socket.onText = { [weak self] text in self?.onReceiveMessage(text: text) }
+//        socket.onPong = { _ in WCLog("<== pong") }
+//        socket.onData = { data in WCLog("<== websocketDidReceiveData: \(data.toHexString())") }
     }
 
     deinit {
